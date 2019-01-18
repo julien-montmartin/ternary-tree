@@ -1,0 +1,10 @@
+[package]
+name = "ternary-tree"
+version = "0.0.1"
+authors = ["Julien Montmartin <julien.montmartin@fastmail.fm>"]
+license = "BSD-3-Clause"
+categories = ["data-structures"]
+keywords = ["tst", "ternary", "search", "tree", "trie", "map"]
+repository = "https://github.com/julien-montmartin/ternary-tree"
+
+[dependencies]
