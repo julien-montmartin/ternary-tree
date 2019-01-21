@@ -1,2 +1,30 @@
 language: rust
+
 sudo: false
+
+rust:
+  - stable
+  - beta
+  - nightly
+
+matrix:
+  allow_failures:
+    - rust: nightly
+
+addons:
+  apt:
+    packages:
+      - binutils-dev
+      - libcurl4-openssl-dev
+      - libdw-dev
+      - zlib1g-dev
+      - binutils-dev
+      - cmake
+      - gcc
+      - libcurl4-openssl-dev
+      - libdw-dev
+      - libelf-dev
+      - libiberty-dev
+
+after_success:
+  - ./cov.sh
