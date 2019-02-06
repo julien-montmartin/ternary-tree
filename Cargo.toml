@@ -1,18 +1,20 @@
 [package]
 name = "ternary-tree"
 description = "A Rust implementation of Ternary Search Trees, with no unsafe blocks"
-version = "0.0.1"
+version = "0.0.5"
 authors = ["Julien Montmartin <julien.montmartin@fastmail.fm>"]
 license = "BSD-3-Clause"
 categories = ["data-structures"]
 keywords = ["tst", "ternary", "search", "tree", "trie"]
+readme = "README.md"
 repository = "https://github.com/julien-montmartin/ternary-tree"
 
 include = [
+    "README.md",
     "src/lib.rs",
-	"tests/tests.rs",
+    "tests/tests.rs",
     "Cargo.toml",
-	"LICENSE",
+    "LICENSE",
 ]
 
 
