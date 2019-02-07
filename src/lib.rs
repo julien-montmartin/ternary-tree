@@ -49,28 +49,28 @@ let mut map = Tst::new();
 
 for key in &SOME_KEYS {
 
-    //Say the value is the same as the key,
-    //it makes the example easier !
+    // Say the value is the same as the key,
+    // it makes the example easier !
     let some_value = *key;
 
     map.insert(key, some_value);
 }
 
-//Use Graphviz to convert tst.dot to tst.png:
-//dot -T png -o tst.png tst.dot
+// Use Graphviz to convert tst.dot to tst.png:
+// dot -T png -o tst.png tst.dot
 let mut file = File::create("tst.dot").unwrap();
 map.pretty_print(&mut file);
 
 let mut v = Vec::new();
 
-//Recursively get all values whose keys match "a?a" pattern
+// Recursively get all values whose keys match "a?a" pattern
 map.visit_crossword_values("a?a", '?', |s| v.push(s.clone()));
 assert_eq!(v, ["aba", "aca"]);
 
 v.clear();
 
-//Iterate over all values whose keys are close to "abc"
-//(At a Hamming distance of 1 from "abc")
+// Iterate over all values whose keys are close to "abc"
+// (At a Hamming distance of 1 from "abc")
 {
     let mut it = map.iter_neighbor("abc", 1);
 
@@ -83,7 +83,7 @@ v.clear();
     v.clear();
 }
 
-//Mutate all values whose keys begin with "c"
+// Mutate all values whose keys begin with "c"
 map.visit_complete_values_mut("c", |s| *s = "xxx");
 
 assert_eq!(map.get("caa"), Some(&"xxx"));
@@ -424,7 +424,6 @@ fn stat_r<T>(stats: Stats, link: &Link<T>, matches: usize, sides: usize, depth: 
 }
 
 
-//TODO - Documenter piège : le préfix à compléter est "passé" et l'éventuelle valeur attachée au préfix n'est par conséquent pas remontée
 fn find_complete_root_r<'a, T>(link: &'a Link<T>, label: char, mut key_tail: Chars) -> &'a Link<T> {
 
     match *link {
@@ -573,7 +572,6 @@ where C: FnMut (&mut T) {
 }
 
 
-//TODO - revoir syntaxe des mut, avant ou après les ':' ?
 fn visit_neighbor_values_r<'a, T, C>(link: &'a Link<T>, label: Option<char>, key_tail: &mut Chars, tail_len: usize, range: usize, callback: &mut C)
 where C: FnMut (&T) {
 
@@ -608,8 +606,6 @@ where C: FnMut (&T) {
                 }
             }
 
-            //TODO - Vérifier la libération des objets. Cela arrive-t-il plus rapidement
-            //       avec une portée réduite ?
             {
                 let new_range = match label {
 
@@ -639,8 +635,7 @@ where C: FnMut (&mut T) {
 
         if let Some(label) = label {
 
-            //TODO - Clarifier ça...
-            if let Some(/*ref mut*/ value) = get_r_mut(link, label, key_tail) {
+            if let Some(value) = get_r_mut(link, label, key_tail) {
 
                 callback(value);
             }
@@ -660,8 +655,7 @@ where C: FnMut (&mut T) {
 
                     None => range-1,
 
-                    //TODO - Clarifier ça...
-                    Some(label) => if label == /*node.label*/ label_tmp { range } else { range-1 }
+                    Some(label) => if label == label_tmp { range } else { range-1 }
                 };
 
                 if tail_len <= new_range {
@@ -670,8 +664,6 @@ where C: FnMut (&mut T) {
                 }
             }
 
-            //TODO - Vérifier la libération des objets. Cela arrive-t-il plus rapidement
-            //       avec une portée réduite ?
             {
                 let new_range = match label {
 
@@ -772,7 +764,7 @@ fn visit_crossword_values_r_mut<'a, T, C>(link: &'a mut Link<T>, label: char, ke
 }
 
 
-fn pretty_print_r<'a, T>(link: &'a Link<T>, writer: &mut Write) {
+fn pretty_print_r<'a, T>(link: &'a Link<T>, ids: &mut Tst<usize>, writer: &mut Write) {
 
     match *link {
 
@@ -785,12 +777,36 @@ fn pretty_print_r<'a, T>(link: &'a Link<T>, writer: &mut Write) {
                 None => "☐", Some(_) => "☑"
             };
 
-            let _ = writeln!(writer, r#""{:p}" [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR><TD COLSPAN="3">{} {}</TD></TR><TR><TD PORT="l"></TD><TD PORT="m"></TD><TD PORT="r"></TD></TR></TABLE>>]"#, node, value_box, node.label);
-
             {
+                let mut get_id = |node: &Box<Node<T>>| {
+
+                    let node_addr = format!("{:p}", node);
+
+                    let prev_id = match ids.get(&node_addr) {
+
+                        None => None,
+
+                        Some(id) => Some(*id)
+                    };
+
+                    match prev_id {
+
+                        None => {
+
+                            let id = ids.len();
+                            ids.insert(&node_addr, id);
+                            id
+                        }
+
+                        Some(id) => id
+                    }
+                };
+
+                let _ = writeln!(writer, r#"N{} [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR><TD COLSPAN="3">{} {}</TD></TR><TR><TD PORT="l"></TD><TD PORT="m"></TD><TD PORT="r"></TD></TR></TABLE>>]"#, get_id(node), value_box, node.label);
+
                 let mut print_edge = |link, start, style| if let &Some(ref child) = link {
 
-                    let _ = writeln!(writer, r#""{:p}":{} -> "{:p}" [style={}]"#, node, start, child, style);
+                    let _ = writeln!(writer, r#"N{}:{} -> N{} [style={}]"#, get_id(node), start, get_id(child), style);
                 };
 
                 print_edge(&node.left, "l", "solid");
@@ -798,16 +814,15 @@ fn pretty_print_r<'a, T>(link: &'a Link<T>, writer: &mut Write) {
                 print_edge(&node.right, "r", "solid");
             }
 
-            pretty_print_r(&node.left, writer);
-            pretty_print_r(&node.middle, writer);
-            pretty_print_r(&node.right, writer);
+            pretty_print_r(&node.left, ids, writer);
+            pretty_print_r(&node.middle, ids, writer);
+            pretty_print_r(&node.right, ids, writer);
         }
     }
 }
 
 
 impl<T> Tst<T> {
-
 
     /// Constructs a new, empty `Tst`. The key is always a string slice and one needs only to provide a value type. The following code creates an empty tree which stores `bool` values
     ///
@@ -843,7 +858,7 @@ impl<T> Tst<T> {
     /// assert_eq!(map.len(), 1);
     /// ```
     ///
-    /// Because `key` represents a node path to `value` in the tree, an empty key is meaningless, and its associated value cannot be stored in the tree. In such a case, `value` is given back by [`insert`](./struct.Tst.html#method.insert)
+    /// Because `key` represents a node path to `value` in the tree, an empty key is meaningless, and its associated value cannot be stored in the tree. In such a case, `value` is given back by `insert`
     ///
     /// ```
     /// # use ternary_tree::Tst;
@@ -855,7 +870,7 @@ impl<T> Tst<T> {
     /// assert_eq!(map.len(), 0);
     /// ```
     ///
-    /// Another consequence of `key` representing a path in the tree is that `key` is not consumed by [`insert`](./struct.Tst.html#method.insert): `key` is only borrowed by the tree which needs to iterate over it, but does not need to store it. Thus once insertion is done, `key` is given back to the caller.
+    /// Another consequence of `key` representing a path in the tree is that `key` is not consumed by `insert`: `key` is only borrowed by the tree which needs to iterate over it, but does not need to store it. Thus once insertion is done, `key` is given back to the caller.
 
     pub fn insert(&mut self, key: &str, value: T) -> Option<T> {
 
@@ -1236,10 +1251,11 @@ impl<T> Tst<T> {
         let _ = writeln!(writer, "digraph {{");
         let _ = writeln!(writer, "node [shape=plaintext]");
 
-        pretty_print_r(&self.root, writer);
+        let mut ids = Tst::new();
+
+        pretty_print_r(&self.root, &mut ids, writer);
 
         let _ = writeln!(writer, "}}");
-
     }
 
 
@@ -1318,7 +1334,7 @@ impl<T> Tst<T> {
     }
 
 
-    /// Create a [double-ended](https://doc.rust-lang.org/std/iter/trait.DoubleEndedIterator.html) iterator which successively returns all values whose key _matches_ `pattern`. `pattern` is a string slice where each `joker` character stands for _any_ character. Values are immutable, and are found in alphabetical order of keys by [`next`](./struct.TstCrosswordIterator.html#method.next), and in the opposite order by [`next_back`](./struct.TstCrosswordIterator.html#method.next_back). Methods [`current_key`](./struct.TstCrosswordIterator.html#method.current_key) and [`current_key_back`](./struct.TstCrosswordIterator.html#method.current_key_back) regenerate the key associated with the last value returned by [`next`](./struct.TstCrosswordIterator.html#method.next) or [`next_back`](struct.TstCrosswordIterator.html#method.next_back). See also the [`visit_crossword_value_mut`](./struct.Tst.html#method.visit_crossword_values_mut) method which produces the same sequence of mutable values.
+    /// Create a [double-ended](https://doc.rust-lang.org/std/iter/trait.DoubleEndedIterator.html) iterator which successively returns all values whose key _matches_ `pattern`. The `pattern` is a string slice where each `joker` character stands for _any_ character. A `pattern` of _n_ `joker` characters will find all values whose key length is exactly _n_. Values are immutable, and are found in alphabetical order of keys by [`next`](./struct.TstCrosswordIterator.html#method.next), and in the opposite order by [`next_back`](./struct.TstCrosswordIterator.html#method.next_back). Methods [`current_key`](./struct.TstCrosswordIterator.html#method.current_key) and [`current_key_back`](./struct.TstCrosswordIterator.html#method.current_key_back) regenerate the key associated with the last value returned by [`next`](./struct.TstCrosswordIterator.html#method.next) or [`next_back`](struct.TstCrosswordIterator.html#method.next_back). See also the [`visit_crossword_value_mut`](./struct.Tst.html#method.visit_crossword_values_mut) method which produces the same sequence of mutable values.
     ///
     /// ```
     /// # use ternary_tree::Tst;
@@ -1438,10 +1454,6 @@ impl<'a, T> TstIterator<'a, T> {
         };
 
         if let Some(ref node) = root {
-
-            //TODO - Comprendre exactement comment on se débarasse de la box ici
-            //no method named `paf` found for type `&std::boxed::Box<tst::Node<T>>`
-            //node.paf();
 
             it.todo_i.push((node, GoLeft));
             it.todo_j.push((node, GoRight));
@@ -1628,7 +1640,6 @@ pub struct TstCompleteIterator<'a, T: 'a> {
 
 impl<'a, T> TstCompleteIterator<'a, T> {
 
-    //TODO - On consomme uns String ou on prend une &str qui est copiée (cohérence interface) ?
     pub fn new(tst: &'a Tst<T>, key_prefix: &str) -> Self {
 
         let mut key_tail = key_prefix.chars();

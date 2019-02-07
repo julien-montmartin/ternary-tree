@@ -1668,3 +1668,23 @@ fn tst_create_with_macro() {
 
     assert_eq!(v, SORTED_VEC_123);
 }
+
+
+#[test]
+fn tst_pretty_print() {
+
+    use ternary_tree::tst;
+
+    let map = tst!["ab" => "ab", "aa" => "aa", "ac" => "ac"];
+
+    let mut w = Vec::new();
+
+    map.pretty_print(&mut w);
+
+    let s = String::from_utf8(w).unwrap();
+    //print!("{:?}", s);
+
+    let r = "digraph {\nnode [shape=plaintext]\nN0 [label=<<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\"><TR><TD COLSPAN=\"3\">☐ a</TD></TR><TR><TD PORT=\"l\"></TD><TD PORT=\"m\"></TD><TD PORT=\"r\"></TD></TR></TABLE>>]\nN0:m -> N1 [style=bold]\nN1 [label=<<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\"><TR><TD COLSPAN=\"3\">☑ b</TD></TR><TR><TD PORT=\"l\"></TD><TD PORT=\"m\"></TD><TD PORT=\"r\"></TD></TR></TABLE>>]\nN1:l -> N2 [style=solid]\nN1:r -> N3 [style=solid]\nN2 [label=<<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\"><TR><TD COLSPAN=\"3\">☑ a</TD></TR><TR><TD PORT=\"l\"></TD><TD PORT=\"m\"></TD><TD PORT=\"r\"></TD></TR></TABLE>>]\nN3 [label=<<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\"><TR><TD COLSPAN=\"3\">☑ c</TD></TR><TR><TD PORT=\"l\"></TD><TD PORT=\"m\"></TD><TD PORT=\"r\"></TD></TR></TABLE>>]\n}\n";
+
+    assert_eq!(s, r);
+}

@@ -50,28 +50,28 @@ let mut map = Tst::new();
 
 for key in &SOME_KEYS {
 
-    //Say the value is the same as the key,
-    //it makes the example easier !
+    // Say the value is the same as the key,
+    // it makes the example easier !
     let some_value = *key;
 
     map.insert(key, some_value);
 }
 
-//Use Graphviz to convert tst.dot to tst.png:
-//dot -T png -o tst.png tst.dot
+// Use Graphviz to convert tst.dot to tst.png:
+// dot -T png -o tst.png tst.dot
 let mut file = File::create("tst.dot").unwrap();
 map.pretty_print(&mut file);
 
 let mut v = Vec::new();
 
-//Recursively get all values whose keys match "a?a" pattern
+// Recursively get all values whose keys match "a?a" pattern
 map.visit_crossword_values("a?a", '?', |s| v.push(s.clone()));
 assert_eq!(v, ["aba", "aca"]);
 
 v.clear();
 
-//Iterate over all values whose keys are close to "abc"
-//(At a Hamming distance of 1 from "abc")
+// Iterate over all values whose keys are close to "abc"
+// (At a Hamming distance of 1 from "abc")
 {
     let mut it = map.iter_neighbor("abc", 1);
 
@@ -84,7 +84,7 @@ v.clear();
     v.clear();
 }
 
-//Mutate all values whose keys begin with "c"
+// Mutate all values whose keys begin with "c"
 map.visit_complete_values_mut("c", |s| *s = "xxx");
 
 assert_eq!(map.get("caa"), Some(&"xxx"));
