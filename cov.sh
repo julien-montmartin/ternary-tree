@@ -1,36 +1,61 @@
 #!/bin/bash
 
+cat <<EOF
 
-echo "Download and build kcov"
+************************************************************************
+*
+* Donwload latest Kcov AppImage
+*
+************************************************************************
 
-wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz
-tar xzf master.tar.gz
-cd kcov-master
-mkdir build
-cd build
-cmake ..
-make
-make install DESTDIR=../../kcov-build
-cd ../..
-rm -rf kcov-master
+EOF
 
-set -x
+REPO=julien-montmartin/kcov-appimage
+HTML=$(wget -q -O - https://github.com/${REPO}/releases/latest)
+RELEASE=$(grep -o -E /${REPO}/releases/download/[^/]+/kcov-[^.]+\\.AppImage <<< ${HTML})
+URL=https://github.com/${RELEASE}
+KCOV=./kcov.AppImage
 
-KCOV=./kcov-build/usr/local/bin/kcov
+wget -q -O ${KCOV} ${URL}
+chmod +x ${KCOV}
+
+CMD="${KCOV} --version"
+VER=$(eval ${CMD})
+
+echo "Running ${CMD} says ${VER}"
+
+cat <<EOF
+
+************************************************************************
+*
+* Run Kcov on tests
+*
+************************************************************************
+
+EOF
+
 TESTS=$(find ./target/debug -maxdepth 1 -executable -iname "tests-*")
 
-for t in ${TESTS}; do
+for T in ${TESTS}; do
 
-	DIR=target/cov/$(basename ${t})
+	DIR=target/cov/$(basename ${T})
 
 	mkdir -p ${DIR}
 
 	echo "Run kcov on ${t} in ${DIR}"
 
-	${KCOV} --exclude-pattern=/.cargo,/usr/lib --verify ${DIR} ${t}
+	${KCOV} --exclude-pattern=/.cargo,/usr/lib --verify ${DIR} ${T}
 
 done
 
-bash <(curl -s https://codecov.io/bash)
+cat <<EOF
 
-echo "Uploaded code coverage"
+************************************************************************
+*
+* Upload coverage results
+*
+************************************************************************
+
+EOF
+
+bash <(curl -s https://codecov.io/bash)
