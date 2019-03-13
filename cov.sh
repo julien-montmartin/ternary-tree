@@ -10,19 +10,11 @@ cat <<EOF
 
 EOF
 
-REPO=julien-montmartin/kcov-appimage
-HTML=$(wget -q -O - https://github.com/${REPO}/releases/latest)
-RELEASE=$(grep -o -E /${REPO}/releases/download/[^/]+/kcov-[^.]+\\.AppImage <<< ${HTML})
-URL=https://github.com/${RELEASE}
-KCOV=./kcov.AppImage
+TRAMPOLINE=https://raw.githubusercontent.com/julien-montmartin/kcov-appimage/master/trampoline.txt
+curl -s ${TRAMPOLINE} | curl -sLK -
 
-wget -q -O ${KCOV} ${URL}
-chmod +x ${KCOV}
-
-CMD="${KCOV} --version"
-VER=$(eval ${CMD})
-
-echo "Running ${CMD} says ${VER}"
+chmod +x ./kcov-x86_64.AppImage
+echo "Running AppImage of $(./kcov-x86_64.AppImage --version)"
 
 cat <<EOF
 
@@ -44,7 +36,7 @@ for T in ${TESTS}; do
 
 	echo "Run kcov on ${t} in ${DIR}"
 
-	${KCOV} --exclude-pattern=/.cargo,/usr/lib --verify ${DIR} ${T}
+	./kcov-x86_64.AppImage --exclude-pattern=/.cargo,/usr/lib --verify ${DIR} ${T}
 
 done
 
