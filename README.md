@@ -1,6 +1,6 @@
 # ternary-tree
 
-A Rust implementation of Ternary Search Trees, with no unsafe blocks.
+A Rust implementation of Ternary Search Trees, with no unsafe block.
 
 [![Build Status]( http://travis-ci.com/julien-montmartin/ternary-tree.svg?branch=master)](
 	http://travis-ci.com/julien-montmartin/ternary-tree)
