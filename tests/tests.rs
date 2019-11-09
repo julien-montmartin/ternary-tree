@@ -212,7 +212,7 @@ fn tst_iterate_over_values_with_peek_and_co() {
 
     ////////////////////////////////////////////////////
 
-    let sum = map.iter().fold(0, |acc, v| acc + v);
+    let sum = map.iter().fold(0, |acc, v| acc + *v);
     let n = map.len();
 
     assert_eq!(sum, n*(n+1)/2);
@@ -1306,10 +1306,6 @@ fn tst_stats_on_insert_and_remove() {
 
     let s1 = empty_map.stat();
 
-    //TODO - Marche pas, y compris avec les use tst::xxxStat ;(
-    //assert_eq!(s, {dist: [], key_len: {0, 0}, count: {0, 0}, bytes: {0, 0}});
-    //                      ^ expecting a type here because of type ascription
-
     assert_eq!(s1.dist.is_empty(), true);
     assert_eq!(s1.key_len.min, 0);
     assert_eq!(s1.key_len.max, 0);
@@ -1474,7 +1470,7 @@ fn tst_iterate_and_read_current_key_back() {
 
 
 #[test]
-fn tst_current_keyterators() {
+fn tst_current_key_iterators() {
 
     let map = get_sample_map_abc_abc();
     assert_eq!(map.len(), 16);
@@ -1571,7 +1567,7 @@ fn tst_update_some_values() {
 
     for k in SORTED_VEC_123.iter() {
 
-        let mut value =  map.get_mut(k);
+        let value =  map.get_mut(k);
 
         if let Some(c) = value {
 

@@ -8,6 +8,8 @@ A Rust implementation of Ternary Search Trees, with no unsafe block.
 	http://codecov.io/gh/julien-montmartin/ternary-tree)
 [![Latest version]( http://img.shields.io/crates/v/ternary-tree.svg)](
 	http://crates.io/crates/ternary-tree)
+[![API](https://docs.rs/ternary-tree/badge.svg)](
+	https://docs.rs/ternary-tree/)
 
 A Ternary Search Tree (TST) is a data structure which stores key/value pairs in a tree. The key is a string, and
 its characters are placed in the tree nodes. Each node may have three children (hence the name): a _left_ child, a
@@ -15,7 +17,7 @@ _middle_ child and a _right_ child.
 
 A search in a TST compares the current character in the key with the character of the current node:
 
-* If both matches, the search traverse the middle child, and proceed to the next character in the key
+* If both matches, the search traverses the middle child, and proceed to the next character in the key
 * If the key character is less than the node one, the search simply goes through the left child, and keep looking
   for the same key character
 * Respectively, if the key character is greater than the node one, the search simply goes through the right child

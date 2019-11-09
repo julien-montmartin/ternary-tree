@@ -7,6 +7,8 @@ A Rust implementation of Ternary Search Trees, with no unsafe blocks.
 	http://codecov.io/gh/julien-montmartin/ternary-tree)
 [![Latest version]( http://img.shields.io/crates/v/ternary-tree.svg)](
 	http://crates.io/crates/ternary-tree)
+[![API](https://docs.rs/ternary-tree/badge.svg)](
+	https://docs.rs/ternary-tree/)
 
 A Ternary Search Tree (TST) is a data structure which stores key/value pairs in a tree. The key is a string, and
 its characters are placed in the tree nodes. Each node may have three children (hence the name): a _left_ child, a
@@ -14,7 +16,7 @@ _middle_ child and a _right_ child.
 
 A search in a TST compares the current character in the key with the character of the current node:
 
-* If both matches, the search traverse the middle child, and proceed to the next character in the key
+* If both matches, the search traverses the middle child, and proceed to the next character in the key
 * If the key character is less than the node one, the search simply goes through the left child, and keep looking
   for the same key character
 * Respectively, if the key character is greater than the node one, the search simply goes through the right child
@@ -26,7 +28,7 @@ The following tree is the TST we get after inserting the following keys in order
 "a", "b", "aca", "caa", "cbc", "bac", "c", "cca", "aab", "abb", "aa" (see `tst.dot` produced by code below)
 
 <p align="center"><img alt="An example of a Ternary Search Tree"
-src="http://files.jmontmartin.net/tree.svg"></p>
+src="https://files.jmontmartin.net/tree.svg"></p>
 
 A checked box "☑" denotes a node which stores a value (it corresponds to the last character of a key). An empty box
 "☐" means that the node has no value.
@@ -376,7 +378,7 @@ pub struct BytesStat { pub node: usize, pub total: usize }
 
 /// Contains various metrics describing the tree: its nodes, keys and values. Mostly used for tuning and debugging
 /// purpose.
-/// * `dist[n].matches` number of values reached by traversing _n_ `middle` links (the number of keys of lenght
+/// * `dist[n].matches` number of values reached by traversing _n_ `middle` links (the number of keys of length
 /// _n_)
 /// * `dist[n].sides` number of values reached by traversing _n_ `left` or `middle` links (those links may indicate
 /// that the tree is not well balanced)
@@ -438,7 +440,7 @@ fn stat_r<T>(stats: Stats, link: &Link<T>, matches: usize, sides: usize, depth: 
                 stats.count.values+=1;
             }
 
-            let mut stats = stat_r(stats, &node.middle, matches+1, sides, depth+1);
+            let stats = stat_r(stats, &node.middle, matches+1, sides, depth+1);
             let stats = stat_r(stats, &node.right, matches, sides+1, depth+1);
 
             stats
@@ -503,7 +505,7 @@ fn find_complete_root_r_mut<'a, T>(link: &'a mut Link<T>, label: char, mut key_t
 }
 
 
-fn visit_values_r<'a, T, C>(link: &'a Link<T>, callback: &mut C)
+fn visit_values_r<T, C>(link: &Link<T>, callback: &mut C)
 where C: FnMut (&T) {
 
     match *link {
@@ -526,7 +528,7 @@ where C: FnMut (&T) {
 }
 
 
-fn visit_values_r_mut<'a, T, C>(link: &'a mut Link<T>, callback: &mut C)
+fn visit_values_r_mut<T, C>(link: &mut Link<T>, callback: &mut C)
 where C: FnMut (&mut T) {
 
     match *link {
@@ -549,7 +551,7 @@ where C: FnMut (&mut T) {
 }
 
 
-fn visit_complete_values_r<'a, T, C>(link: &'a Link<T>, callback: &mut C)
+fn visit_complete_values_r<T, C>(link: &Link<T>, callback: &mut C)
 where C: FnMut (&T) {
 
     match *link {
@@ -572,7 +574,7 @@ where C: FnMut (&T) {
 }
 
 
-fn visit_complete_values_r_mut<'a, T, C>(link: &'a mut Link<T>, callback: &mut C)
+fn visit_complete_values_r_mut<T, C>(link: &mut Link<T>, callback: &mut C)
 where C: FnMut (&mut T) {
 
     match *link {
@@ -787,7 +789,7 @@ fn visit_crossword_values_r_mut<'a, T, C>(link: &'a mut Link<T>, label: char, ke
 }
 
 
-fn pretty_print_r<'a, T>(link: &'a Link<T>, ids: &mut Tst<usize>, writer: &mut Write) {
+fn pretty_print_r<'a, T>(link: &'a Link<T>, ids: &mut Tst<usize>, writer: &mut dyn Write) {
 
     match *link {
 
@@ -1305,7 +1307,7 @@ impl<T> Tst<T> {
     /// "☐" means that the node has no value. Mostly used for documentation and debugging purpose. See the [module
     /// documentation]( ./index.html) for an example.
 
-    pub fn pretty_print(&self, writer: &mut Write) {
+    pub fn pretty_print(&self, writer: &mut dyn Write) {
 
         let _ = writeln!(writer, "digraph {{");
         let _ = writeln!(writer, "node [shape=plaintext]");
@@ -2111,7 +2113,7 @@ impl<'a, 'b, T> TstCrosswordIterator<'a, 'b, T> {
 
             todo_i: Vec::new(), last_i: None,
             todo_j: Vec::new(), last_j: None,
-            joker: joker,
+            joker,
 
         };
 
