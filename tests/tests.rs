@@ -119,6 +119,25 @@ fn get_sample_map_abc_abc() -> Tst<&'static str> {
 }
 
 
+fn get_sample_map_abc_abc_with_unicode() -> Tst<std::string::String> {
+
+    let mut map = Tst::new();
+    let mut count = 0;
+
+    for k in RANDOM_VEC_123.iter() {
+
+        count+=1;
+        let key = "🗝".to_owned()+k;
+        let val = "📦".to_owned()+k;
+        let old_value = map.insert(&key, val);
+        assert_eq!(old_value, None);
+        assert_eq!(map.len(), count);
+    }
+
+    map
+}
+
+
 #[test]
 fn tst_insert_and_get_more_key_value() {
 
@@ -684,6 +703,86 @@ fn tst_iterate_with_neighbor() {
     }
 
     assert_eq!(v, SORTED_VEC_123);
+}
+
+
+#[test]
+fn tst_fix_unicode_chars_in_key_bug() {
+
+    let map = get_sample_map_abc_abc_with_unicode();
+    assert_eq!(map.len(), 16);
+
+    let mut v = Vec::new();
+    map.visit_neighbor_values("🗝abc", 0, |s| {v.push(s.clone())});
+    assert_eq!(v, ["📦abc"]);
+
+    v.clear();
+    map.visit_neighbor_values("🗝abc", 1, |s| {v.push(s.clone())});
+    assert_eq!(v, ["📦ab", "📦aba", "📦abb", "📦abc", "📦cbc"]);
+
+    v.clear();
+    map.visit_neighbor_values("xabc", 2, |s| {v.push(s.clone())});
+    assert_eq!(v, ["📦ab", "📦aba", "📦abb", "📦abc", "📦cbc"]);
+
+    ////////////////////////////////////////////////////
+
+    let mut it = map.iter_neighbor("🗝abc", 0);
+    let mut v = Vec::new();
+
+    while let Some(value) = it.next() {
+
+        v.push(value);
+    }
+
+    assert_eq!(v, ["📦abc"]);
+
+    ////////////////////////////////////////////////////
+
+    it = map.iter_neighbor("🗝abc", 1);
+    v.clear();
+
+    while let Some(value) = it.next() {
+
+        v.push(value);
+    }
+
+    assert_eq!(v, ["📦ab", "📦aba", "📦abb", "📦abc", "📦cbc"]);
+
+    ////////////////////////////////////////////////////
+
+    it = map.iter_neighbor("xabc", 2);
+    v.clear();
+
+    while let Some(value) = it.next() {
+
+        v.push(value);
+    }
+
+    assert_eq!(v, ["📦ab", "📦aba", "📦abb", "📦abc", "📦cbc"]);
+
+    ////////////////////////////////////////////////////
+
+    let mut it = map.iter_crossword("🗝?a?", '?');
+    v.clear();
+
+    while let Some(value) = it.next() {
+
+        v.push(value);
+    }
+
+    assert_eq!(v, ["📦aab", "📦bac", "📦caa"]);
+
+    ////////////////////////////////////////////////////
+
+    let mut it = map.iter_crossword("??a?", '?');
+    v.clear();
+
+    while let Some(value) = it.next() {
+
+        v.push(value);
+    }
+
+    assert_eq!(v, ["📦aab", "📦bac", "📦caa"]);
 }
 
 

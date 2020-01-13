@@ -1,5 +1,6 @@
 /*!
-A Rust implementation of Ternary Search Trees, with no unsafe blocks.
+A Rust implementation of Ternary Search Trees, with no unsafe blocks and a simplified [Wasm binding](
+https://crates.io/crates/ternary-tree-wasm).
 
 [![Build Status]( http://travis-ci.com/julien-montmartin/ternary-tree.svg?branch=master)](
 	http://travis-ci.com/julien-montmartin/ternary-tree)
@@ -849,7 +850,7 @@ fn pretty_print_r<'a, T>(link: &'a Link<T>, ids: &mut Tst<usize>, writer: &mut d
 
 impl<T> Tst<T> {
 
-    /// Constructs a new, empty `Tst`. The key is always a string slice and one needs only to provide a value
+    /// Create a new, empty `Tst`. The key is always a string slice and one needs only to provide a value
     /// type. The following code creates an empty tree which stores `bool` values
     ///
     /// ```
@@ -1216,8 +1217,9 @@ impl<T> Tst<T> {
     where C: FnMut (&T) {
 
         let mut key_tail = key.chars();
+        let key_len = key.chars().count();
         let label = key_tail.next();
-        let tail_len = if key.len() == 0 { 0 } else { key.len()-1 };
+        let tail_len = if key_len == 0 { 0 } else { key_len-1 };
 
         visit_neighbor_values_r(&self.root, label, &mut key_tail, tail_len, range, &mut callback);
     }
@@ -1232,8 +1234,9 @@ impl<T> Tst<T> {
     where C: FnMut (&mut T) {
 
         let mut key_tail = key.chars();
+        let key_len = key.chars().count();
         let label = key_tail.next();
-        let tail_len = if key.len() == 0 { 0 } else { key.len()-1 };
+        let tail_len = if key_len == 0 { 0 } else { key_len-1 };
 
         visit_neighbor_values_r_mut(&mut self.root, label, &mut key_tail, tail_len, range, &mut callback);
     }
@@ -1829,8 +1832,9 @@ impl<'a, 'b, T> TstNeighborIterator<'a, 'b, T> {
         if let Some(ref node) = &tst.root {
 
             let mut key_tail = key.chars();
+            let key_len = key.chars().count();
             let label = key_tail.next();
-            let tail_len = if key.len() == 0 { 0 } else { key.len()-1 };
+            let tail_len = if key_len == 0 { 0 } else {key_len-1 };
 
             it.todo_i.push((node, GoLeft, label, key_tail.clone(), tail_len, range));
             it.todo_j.push((node, GoRight, label, key_tail, tail_len, range));
@@ -2123,7 +2127,7 @@ impl<'a, 'b, T> TstCrosswordIterator<'a, 'b, T> {
 
             if let Some(label) = key_tail.next() {
 
-                let tail_len = key.len()-1;
+                let tail_len = key.chars().count()-1;
 
                 it.todo_i.push((node, GoLeft, label, key_tail.clone(), tail_len));
                 it.todo_j.push((node, GoRight, label, key_tail, tail_len));

@@ -1,6 +1,7 @@
 # ternary-tree
 
-A Rust implementation of Ternary Search Trees, with no unsafe block.
+A Rust implementation of Ternary Search Trees, with no unsafe block and a simplified [Wasm binding](
+https://crates.io/crates/ternary-tree-wasm).
 
 [![Build Status]( http://travis-ci.com/julien-montmartin/ternary-tree.svg?branch=master)](
 	http://travis-ci.com/julien-montmartin/ternary-tree)
