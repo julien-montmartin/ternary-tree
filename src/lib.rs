@@ -255,69 +255,60 @@ fn get_r_mut<'a, T>(link: &'a mut Link<T>, label: char, key_tail: &mut Chars) ->
     }
 }
 
-fn remove_r<T>(link: &mut Link<T>, label: char, key_tail: &mut Chars) -> (bool, Option<T>) {
+fn remove_leftmost<T>(link: &mut Link<T>) -> Node<T> {
+    assert!(link.is_some());
+    let node = link.as_mut().unwrap();
+    if node.left.is_some() {
+        remove_leftmost(&mut node.left)
+    } else {
+        let greater = replace(&mut node.right, None);
+        *replace(link, greater).unwrap()
+    }
+}
+
+fn remove_r<T>(link: &mut Link<T>, label: char, key_tail: &mut Chars) -> Option<T> {
     match *link {
-        None => (false, None),
+        None => None,
 
-        Some(ref mut node) => match label.cmp(&node.label) {
-            Less => {
-                let (prune, old_value) = remove_r(&mut node.left, label, key_tail);
+        Some(ref mut node) => {
+            assert!(node.middle.is_some() || node.value.is_some());
 
-                if prune {
-                    node.left = None;
-                }
+            match label.cmp(&node.label) {
+                Less => remove_r(&mut node.left, label, key_tail),
 
-                let more_pruning = node.value.is_none()
-                    && node.left.is_none()
-                    && node.middle.is_none()
-                    && node.right.is_none();
-                (more_pruning, old_value)
-            }
+                Equal => {
+                    let new_label = key_tail.next();
 
-            Equal => {
-                let new_label = key_tail.next();
-
-                match new_label {
-                    None => {
-                        let old_value = replace(&mut node.value, None);
-
-                        let prune = old_value.is_some()
-                            && node.left.is_none()
-                            && node.middle.is_none()
-                            && node.right.is_none();
-                        (prune, old_value)
-                    }
-
-                    Some(label) => {
-                        let (prune, old_value) = remove_r(&mut node.middle, label, key_tail);
-
-                        if prune {
-                            node.middle = None;
+                    let old_value = match new_label {
+                        None => replace(&mut node.value, None),
+                        Some(label) => remove_r(&mut node.middle, label, key_tail),
+                    };
+                    // Node is only needed for as long as it is part of some key
+                    if node.value.is_none() && node.middle.is_none() {
+                        assert!(old_value.is_some());
+                        if node.left.is_none() {
+                            *link = replace(&mut node.right, None)
+                        } else if node.right.is_none() {
+                            *link = replace(&mut node.left, None)
+                        } else {
+                            let Node {
+                                value,
+                                label,
+                                middle,
+                                ..
+                            } = remove_leftmost(&mut node.right);
+                            node.label = label;
+                            node.value = value;
+                            node.middle = middle;
                         }
-
-                        let more_pruning = node.value.is_none()
-                            && node.left.is_none()
-                            && node.middle.is_none()
-                            && node.right.is_none();
-                        (more_pruning, old_value)
                     }
-                }
-            }
 
-            Greater => {
-                let (prune, old_value) = remove_r(&mut node.right, label, key_tail);
-
-                if prune {
-                    node.right = None;
+                    old_value
                 }
 
-                let more_pruning = node.value.is_none()
-                    && node.left.is_none()
-                    && node.middle.is_none()
-                    && node.right.is_none();
-                (more_pruning, old_value)
+                Greater => remove_r(&mut node.right, label, key_tail),
             }
-        },
+        }
     }
 }
 
@@ -987,15 +978,11 @@ impl<T> Tst<T> {
     pub fn remove(&mut self, key: &str) -> Option<T> {
         let mut key_tail = key.chars();
 
-        let (prune, old_value) = match key_tail.next() {
-            None => (false, None),
+        let old_value = match key_tail.next() {
+            None => None,
 
             Some(label) => remove_r(&mut self.root, label, &mut key_tail),
         };
-
-        if prune {
-            self.root = None;
-        }
 
         if old_value.is_some() {
             self.count -= 1;

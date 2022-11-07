@@ -67,6 +67,38 @@ fn tst_get_value_back_on_empty_key() {
     assert_eq!(map.len(), 0);
 }
 
+#[test]
+fn tst_remove_leftmost() {
+    let mut map = Tst::new();
+    /*
+       b              c
+      / \            /|\
+     a   e     ->   a ć e
+        /|\            /|\
+       c ę f          d ę f
+       |\
+       ć d
+    */
+    map.insert("b", "B");
+    map.insert("a", "A");
+    map.insert("eę", "EĘ");
+    map.insert("c", "C");
+    map.insert("cć", "CĆ");
+    map.insert("f", "F");
+    map.insert("d", "D");
+    assert_eq!(map.len(), 7);
+    assert_eq!(map.remove("b"), Some("B"));
+    assert_eq!(map.len(), 6);
+    assert_eq!(map.get("a"), Some(&"A"));
+    assert_eq!(map.get("b"), None);
+    assert_eq!(map.get("c"), Some(&"C"));
+    assert_eq!(map.get("cć"), Some(&"CĆ"));
+    assert_eq!(map.get("d"), Some(&"D"));
+    assert_eq!(map.get("e"), None);
+    assert_eq!(map.get("eę"), Some(&"EĘ"));
+    assert_eq!(map.get("f"), Some(&"F"));
+}
+
 const RANDOM_VEC_123: [&str; 16] = [
     "aba", "ab", "bc", "ac", "abc", "a", "b", "aca", "caa", "cbc", "bac", "c", "cca", "aab", "abb",
     "aa",
