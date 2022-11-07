@@ -1,18 +1,14 @@
 extern crate ternary_tree;
 use ternary_tree::Tst;
 
-
 #[test]
 fn tst_create_empty_map() {
-
     let map: Tst<String> = Tst::new();
     assert_eq!(map.len(), 0);
 }
 
-
 #[test]
 fn tst_insert_some_key_value() {
-
     let mut map = Tst::new();
     assert_eq!(map.len(), 0);
 
@@ -21,10 +17,8 @@ fn tst_insert_some_key_value() {
     assert_eq!(map.len(), 1);
 }
 
-
 #[test]
 fn tst_get_some_value_by_key() {
-
     let mut map = Tst::new();
     assert_eq!(map.len(), 0);
 
@@ -41,10 +35,8 @@ fn tst_get_some_value_by_key() {
     assert_eq!(v2, v1);
 }
 
-
 #[test]
 fn tst_replace_some_value() {
-
     let mut map = Tst::new();
     assert_eq!(map.len(), 0);
 
@@ -65,10 +57,8 @@ fn tst_replace_some_value() {
     assert_eq!(v2, Some(&"v2"));
 }
 
-
 #[test]
 fn tst_get_value_back_on_empty_key() {
-
     let mut map = Tst::new();
     assert_eq!(map.len(), 0);
 
@@ -77,22 +67,27 @@ fn tst_get_value_back_on_empty_key() {
     assert_eq!(map.len(), 0);
 }
 
+const RANDOM_VEC_123: [&str; 16] = [
+    "aba", "ab", "bc", "ac", "abc", "a", "b", "aca", "caa", "cbc", "bac", "c", "cca", "aab", "abb",
+    "aa",
+];
 
-const RANDOM_VEC_123 : [&str; 16] = ["aba", "ab", "bc", "ac", "abc", "a", "b", "aca", "caa", "cbc", "bac", "c", "cca", "aab", "abb", "aa"];
+const RANDOM_VEC_123_BIS: [&str; 16] = [
+    "cca", "aa", "bac", "aba", "b", "bc", "c", "ac", "aab", "ab", "abc", "abb", "a", "caa", "aca",
+    "cbc",
+];
 
-const RANDOM_VEC_123_BIS : [&str; 16] = [ "cca", "aa", "bac", "aba", "b", "bc", "c", "ac", "aab", "ab", "abc", "abb", "a", "caa", "aca", "cbc" ];
-
-const SORTED_VEC_123 : [&str; 16] = ["a", "aa", "aab", "ab", "aba", "abb", "abc", "ac", "aca", "b", "bac", "bc", "c", "caa", "cbc", "cca"];
-
+const SORTED_VEC_123: [&str; 16] = [
+    "a", "aa", "aab", "ab", "aba", "abb", "abc", "ac", "aca", "b", "bac", "bc", "c", "caa", "cbc",
+    "cca",
+];
 
 fn get_sample_map_abc_count() -> Tst<usize> {
-
     let mut map = Tst::new();
     let mut count = 0;
 
     for k in RANDOM_VEC_123.iter() {
-
-        count+=1;
+        count += 1;
         let old_value = map.insert(k, count);
         assert_eq!(old_value, None);
         assert_eq!(map.len(), count);
@@ -101,15 +96,12 @@ fn get_sample_map_abc_count() -> Tst<usize> {
     map
 }
 
-
 fn get_sample_map_abc_abc() -> Tst<&'static str> {
-
     let mut map = Tst::new();
     let mut count = 0;
 
     for k in RANDOM_VEC_123.iter() {
-
-        count+=1;
+        count += 1;
         let old_value = map.insert(k, *k);
         assert_eq!(old_value, None);
         assert_eq!(map.len(), count);
@@ -118,17 +110,14 @@ fn get_sample_map_abc_abc() -> Tst<&'static str> {
     map
 }
 
-
 fn get_sample_map_abc_abc_with_unicode() -> Tst<std::string::String> {
-
     let mut map = Tst::new();
     let mut count = 0;
 
     for k in RANDOM_VEC_123.iter() {
-
-        count+=1;
-        let key = "🗝".to_owned()+k;
-        let val = "📦".to_owned()+k;
+        count += 1;
+        let key = "🗝".to_owned() + k;
+        let val = "📦".to_owned() + k;
         let old_value = map.insert(&key, val);
         assert_eq!(old_value, None);
         assert_eq!(map.len(), count);
@@ -137,23 +126,18 @@ fn get_sample_map_abc_abc_with_unicode() -> Tst<std::string::String> {
     map
 }
 
-
 #[test]
 fn tst_insert_and_get_more_key_value() {
-
     let map = get_sample_map_abc_count();
 
     for k in SORTED_VEC_123.iter() {
-
         let value = map.get(k);
         assert_eq!(*value.unwrap() > 0, true);
     }
 }
 
-
 #[test]
 fn tst_iterate_over_empty_tree() {
-
     let empty_map: Tst<bool> = Tst::new();
     assert_eq!(empty_map.len(), 0);
 
@@ -166,10 +150,8 @@ fn tst_iterate_over_empty_tree() {
     assert_eq!(it.next_back(), None);
 }
 
-
 #[test]
 fn tst_iterate_over_values() {
-
     let map = get_sample_map_abc_abc();
     assert_eq!(map.len(), 16);
 
@@ -185,7 +167,6 @@ fn tst_iterate_over_values() {
     let mut v = Vec::new();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
@@ -195,27 +176,22 @@ fn tst_iterate_over_values() {
     assert_eq!(it.next(), None);
 }
 
-
 #[test]
 fn tst_iterate_over_values_with_for_loop() {
-
     let map = get_sample_map_abc_abc();
     assert_eq!(map.len(), 16);
 
     let mut v = Vec::new();
 
     for value in &map {
-
         v.push(*value);
     }
 
     assert_eq!(v, SORTED_VEC_123);
 }
 
-
 #[test]
 fn tst_iterate_over_values_with_peek_and_co() {
-
     let map = get_sample_map_abc_count();
     assert_eq!(map.len(), 16);
 
@@ -234,13 +210,11 @@ fn tst_iterate_over_values_with_peek_and_co() {
     let sum = map.iter().fold(0, |acc, v| acc + *v);
     let n = map.len();
 
-    assert_eq!(sum, n*(n+1)/2);
+    assert_eq!(sum, n * (n + 1) / 2);
 }
-
 
 #[test]
 fn tst_iterate_over_values_backward() {
-
     let map = get_sample_map_abc_abc();
     assert_eq!(map.len(), 16);
 
@@ -256,7 +230,6 @@ fn tst_iterate_over_values_backward() {
     let mut v = Vec::new();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
     }
 
@@ -268,10 +241,8 @@ fn tst_iterate_over_values_backward() {
     assert_eq!(it.next_back(), None);
 }
 
-
 #[test]
 fn tst_iterate_over_values_backward_with_rev() {
-
     let map = get_sample_map_abc_abc();
     assert_eq!(map.len(), 16);
 
@@ -287,7 +258,6 @@ fn tst_iterate_over_values_backward_with_rev() {
     let mut v = Vec::new();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
@@ -299,10 +269,8 @@ fn tst_iterate_over_values_backward_with_rev() {
     assert_eq!(it.next(), None);
 }
 
-
 #[test]
 fn tst_iterate_over_values_from_both_end() {
-
     let map = get_sample_map_abc_abc();
     assert_eq!(map.len(), 16);
 
@@ -310,7 +278,6 @@ fn tst_iterate_over_values_from_both_end() {
     let mut v = Vec::new();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
@@ -325,7 +292,6 @@ fn tst_iterate_over_values_from_both_end() {
     v.clear();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
     }
 
@@ -344,13 +310,9 @@ fn tst_iterate_over_values_from_both_end() {
     let mut vj = Vec::new();
 
     for i in 0..map.len() {
-
-        if i%2 == 0 {
-
+        if i % 2 == 0 {
             vi.push(*it.next().unwrap());
-
         } else {
-
             vj.push(*it.next_back().unwrap());
         }
     }
@@ -364,10 +326,8 @@ fn tst_iterate_over_values_from_both_end() {
     assert_eq!(vj, ["aca", "b", "bac", "bc", "c", "caa", "cbc", "cca"]);
 }
 
-
 #[test]
 fn tst_visit_values() {
-
     let map = get_sample_map_abc_abc();
     assert_eq!(map.len(), 16);
 
@@ -378,10 +338,8 @@ fn tst_visit_values() {
     assert_eq!(v, SORTED_VEC_123);
 }
 
-
 #[test]
 fn tst_visit_complete_values() {
-
     let map = get_sample_map_abc_abc();
     assert_eq!(map.len(), 16);
 
@@ -391,18 +349,16 @@ fn tst_visit_complete_values() {
     map.visit_complete_values("bc", |s| assert_eq!(s, &"woups"));
 
     let mut v = Vec::new();
-    map.visit_complete_values("ab", |s| {v.push(s.clone())});
+    map.visit_complete_values("ab", |s| v.push(s.clone()));
     assert_eq!(v, ["aba", "abb", "abc"]);
 
     v.clear();
-    map.visit_complete_values("", |s| {v.push(s.clone())});
+    map.visit_complete_values("", |s| v.push(s.clone()));
     assert_eq!(v, SORTED_VEC_123);
 }
 
-
 #[test]
 fn tst_visit_neighbor_values() {
-
     let map = get_sample_map_abc_abc();
     assert_eq!(map.len(), 16);
 
@@ -412,46 +368,47 @@ fn tst_visit_neighbor_values() {
     map.visit_neighbor_values("abc", 0, |s| assert_eq!(s, &"abc"));
 
     let mut v = Vec::new();
-    map.visit_neighbor_values("abc", 1, |s| {v.push(s.clone())});
+    map.visit_neighbor_values("abc", 1, |s| v.push(s.clone()));
     assert_eq!(v, ["ab", "aba", "abb", "abc", "cbc"]);
 
     v.clear();
-    map.visit_neighbor_values("abc", 2, |s| {v.push(s.clone())});
-    assert_eq!(v, ["a", "aa", "aab", "ab", "aba", "abb", "abc", "ac", "aca", "bac", "cbc"]);
+    map.visit_neighbor_values("abc", 2, |s| v.push(s.clone()));
+    assert_eq!(
+        v,
+        ["a", "aa", "aab", "ab", "aba", "abb", "abc", "ac", "aca", "bac", "cbc"]
+    );
 
     v.clear();
-    map.visit_neighbor_values("abc", 3, |s| {v.push(s.clone())});
+    map.visit_neighbor_values("abc", 3, |s| v.push(s.clone()));
     assert_eq!(v, SORTED_VEC_123);
 
     v.clear();
-    map.visit_neighbor_values("xxxx", 4, |s| {v.push(s.clone())});
+    map.visit_neighbor_values("xxxx", 4, |s| v.push(s.clone()));
     assert_eq!(v, SORTED_VEC_123);
 
     v.clear();
-    map.visit_neighbor_values("", 0, |s| {v.push(s.clone())});
+    map.visit_neighbor_values("", 0, |s| v.push(s.clone()));
     assert_eq!(v.is_empty(), true);
 
     v.clear();
-    map.visit_neighbor_values("", 1, |s| {v.push(s.clone())});
+    map.visit_neighbor_values("", 1, |s| v.push(s.clone()));
     assert_eq!(v, ["a", "b", "c"]);
 
     v.clear();
-    map.visit_neighbor_values("", 2, |s| {v.push(s.clone())});
+    map.visit_neighbor_values("", 2, |s| v.push(s.clone()));
     assert_eq!(v, ["a", "aa", "ab", "ac", "b", "bc", "c"]);
 
     v.clear();
-    map.visit_neighbor_values("", 3, |s| {v.push(s.clone())});
+    map.visit_neighbor_values("", 3, |s| v.push(s.clone()));
     assert_eq!(v, SORTED_VEC_123);
 
     v.clear();
-    map.visit_neighbor_values("", 4, |s| {v.push(s.clone())});
+    map.visit_neighbor_values("", 4, |s| v.push(s.clone()));
     assert_eq!(v, SORTED_VEC_123);
 }
 
-
 #[test]
 fn tst_visit_crossword_values() {
-
     let map = get_sample_map_abc_abc();
     assert_eq!(map.len(), 16);
 
@@ -478,7 +435,10 @@ fn tst_visit_crossword_values() {
 
     v.clear();
     map.visit_crossword_values("???", '?', |s| v.push(s.clone()));
-    assert_eq!(v, ["aab", "aba", "abb", "abc", "aca", "bac", "caa", "cbc", "cca"]);
+    assert_eq!(
+        v,
+        ["aab", "aba", "abb", "abc", "aca", "bac", "caa", "cbc", "cca"]
+    );
 
     v.clear();
     map.visit_crossword_values("????", '?', |s| v.push(s.clone()));
@@ -489,10 +449,8 @@ fn tst_visit_crossword_values() {
     assert_eq!(v, ["aba", "aca"]);
 }
 
-
 #[test]
 fn tst_iterate_with_complete() {
-
     let empty_map: Tst<bool> = Tst::new();
     assert_eq!(empty_map.len(), 0);
 
@@ -523,7 +481,6 @@ fn tst_iterate_with_complete() {
     let mut v = Vec::new();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
@@ -535,7 +492,6 @@ fn tst_iterate_with_complete() {
     v.clear();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
@@ -555,10 +511,8 @@ fn tst_iterate_with_complete() {
     assert_eq!(it.next(), None);
 }
 
-
 #[test]
 fn tst_iterate_with_neighbor() {
-
     let map = get_sample_map_abc_abc();
     assert_eq!(map.len(), 16);
 
@@ -566,7 +520,6 @@ fn tst_iterate_with_neighbor() {
     let mut v = Vec::new();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
@@ -578,7 +531,6 @@ fn tst_iterate_with_neighbor() {
     v.clear();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
@@ -590,7 +542,6 @@ fn tst_iterate_with_neighbor() {
     v.clear();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
@@ -602,7 +553,6 @@ fn tst_iterate_with_neighbor() {
     v.clear();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
@@ -614,11 +564,13 @@ fn tst_iterate_with_neighbor() {
     v.clear();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
-    assert_eq!(v, ["a", "aa", "aab", "ab", "aba", "abb", "abc", "ac", "aca", "bac", "cbc"]);
+    assert_eq!(
+        v,
+        ["a", "aa", "aab", "ab", "aba", "abb", "abc", "ac", "aca", "bac", "cbc"]
+    );
 
     ////////////////////////////////////////////////////
 
@@ -626,7 +578,6 @@ fn tst_iterate_with_neighbor() {
     v.clear();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
@@ -638,7 +589,6 @@ fn tst_iterate_with_neighbor() {
     v.clear();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
@@ -650,7 +600,6 @@ fn tst_iterate_with_neighbor() {
     v.clear();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
@@ -662,7 +611,6 @@ fn tst_iterate_with_neighbor() {
     v.clear();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
@@ -674,7 +622,6 @@ fn tst_iterate_with_neighbor() {
     v.clear();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
@@ -686,7 +633,6 @@ fn tst_iterate_with_neighbor() {
     v.clear();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
@@ -698,30 +644,27 @@ fn tst_iterate_with_neighbor() {
     v.clear();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
     assert_eq!(v, SORTED_VEC_123);
 }
 
-
 #[test]
 fn tst_fix_unicode_chars_in_key_bug() {
-
     let map = get_sample_map_abc_abc_with_unicode();
     assert_eq!(map.len(), 16);
 
     let mut v = Vec::new();
-    map.visit_neighbor_values("🗝abc", 0, |s| {v.push(s.clone())});
+    map.visit_neighbor_values("🗝abc", 0, |s| v.push(s.clone()));
     assert_eq!(v, ["📦abc"]);
 
     v.clear();
-    map.visit_neighbor_values("🗝abc", 1, |s| {v.push(s.clone())});
+    map.visit_neighbor_values("🗝abc", 1, |s| v.push(s.clone()));
     assert_eq!(v, ["📦ab", "📦aba", "📦abb", "📦abc", "📦cbc"]);
 
     v.clear();
-    map.visit_neighbor_values("xabc", 2, |s| {v.push(s.clone())});
+    map.visit_neighbor_values("xabc", 2, |s| v.push(s.clone()));
     assert_eq!(v, ["📦ab", "📦aba", "📦abb", "📦abc", "📦cbc"]);
 
     ////////////////////////////////////////////////////
@@ -730,7 +673,6 @@ fn tst_fix_unicode_chars_in_key_bug() {
     let mut v = Vec::new();
 
     while let Some(value) = it.next() {
-
         v.push(value);
     }
 
@@ -742,7 +684,6 @@ fn tst_fix_unicode_chars_in_key_bug() {
     v.clear();
 
     while let Some(value) = it.next() {
-
         v.push(value);
     }
 
@@ -754,7 +695,6 @@ fn tst_fix_unicode_chars_in_key_bug() {
     v.clear();
 
     while let Some(value) = it.next() {
-
         v.push(value);
     }
 
@@ -766,7 +706,6 @@ fn tst_fix_unicode_chars_in_key_bug() {
     v.clear();
 
     while let Some(value) = it.next() {
-
         v.push(value);
     }
 
@@ -778,17 +717,14 @@ fn tst_fix_unicode_chars_in_key_bug() {
     v.clear();
 
     while let Some(value) = it.next() {
-
         v.push(value);
     }
 
     assert_eq!(v, ["📦aab", "📦bac", "📦caa"]);
 }
 
-
 #[test]
 fn tst_iterate_with_neighbor_backward() {
-
     let map = get_sample_map_abc_abc();
     assert_eq!(map.len(), 16);
 
@@ -796,7 +732,6 @@ fn tst_iterate_with_neighbor_backward() {
     let mut v = Vec::new();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
     }
 
@@ -810,7 +745,6 @@ fn tst_iterate_with_neighbor_backward() {
     v.clear();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
     }
 
@@ -822,7 +756,6 @@ fn tst_iterate_with_neighbor_backward() {
     v.clear();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
     }
 
@@ -834,7 +767,6 @@ fn tst_iterate_with_neighbor_backward() {
     v.clear();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
     }
 
@@ -846,7 +778,6 @@ fn tst_iterate_with_neighbor_backward() {
     v.clear();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
     }
 
@@ -860,13 +791,15 @@ fn tst_iterate_with_neighbor_backward() {
     v.clear();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
     }
 
     v.reverse();
 
-    assert_eq!(v, ["a", "aa", "aab", "ab", "aba", "abb", "abc", "ac", "aca", "bac", "cbc"]);
+    assert_eq!(
+        v,
+        ["a", "aa", "aab", "ab", "aba", "abb", "abc", "ac", "aca", "bac", "cbc"]
+    );
 
     ////////////////////////////////////////////////////
 
@@ -874,7 +807,6 @@ fn tst_iterate_with_neighbor_backward() {
     v.clear();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
     }
 
@@ -888,7 +820,6 @@ fn tst_iterate_with_neighbor_backward() {
     v.clear();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
     }
 
@@ -902,7 +833,6 @@ fn tst_iterate_with_neighbor_backward() {
     v.clear();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
     }
 
@@ -914,7 +844,6 @@ fn tst_iterate_with_neighbor_backward() {
     v.clear();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
     }
 
@@ -928,7 +857,6 @@ fn tst_iterate_with_neighbor_backward() {
     v.clear();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
     }
 
@@ -942,7 +870,6 @@ fn tst_iterate_with_neighbor_backward() {
     v.clear();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
     }
 
@@ -956,7 +883,6 @@ fn tst_iterate_with_neighbor_backward() {
     v.clear();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
     }
 
@@ -965,10 +891,8 @@ fn tst_iterate_with_neighbor_backward() {
     assert_eq!(v, SORTED_VEC_123);
 }
 
-
 #[test]
 fn tst_iterate_with_neighbor_from_both_end() {
-
     let map = get_sample_map_abc_abc();
     assert_eq!(map.len(), 16);
 
@@ -976,11 +900,13 @@ fn tst_iterate_with_neighbor_from_both_end() {
     let mut v = Vec::new();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
-    assert_eq!(v, ["a", "aa", "aab", "ab", "aba", "abb", "abc", "ac", "aca", "bac", "cbc"]);
+    assert_eq!(
+        v,
+        ["a", "aa", "aab", "ab", "aba", "abb", "abc", "ac", "aca", "bac", "cbc"]
+    );
 
     assert_eq!(it.next(), None);
     assert_eq!(it.next_back(), None);
@@ -991,13 +917,15 @@ fn tst_iterate_with_neighbor_from_both_end() {
     v.clear();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
     }
 
     v.reverse();
 
-    assert_eq!(v, ["a", "aa", "aab", "ab", "aba", "abb", "abc", "ac", "aca", "bac", "cbc"]);
+    assert_eq!(
+        v,
+        ["a", "aa", "aab", "ab", "aba", "abb", "abc", "ac", "aca", "bac", "cbc"]
+    );
 
     assert_eq!(it.next_back(), None);
     assert_eq!(it.next(), None);
@@ -1014,13 +942,9 @@ fn tst_iterate_with_neighbor_from_both_end() {
     let mut vj = Vec::new();
 
     for i in 0..count {
-
-        if i%2 == 0 {
-
+        if i % 2 == 0 {
             vi.push(*it.next().unwrap());
-
         } else {
-
             vj.push(*it.next_back().unwrap());
         }
     }
@@ -1034,10 +958,8 @@ fn tst_iterate_with_neighbor_from_both_end() {
     assert_eq!(vj, ["abc", "ac", "aca", "bac", "cbc"]);
 }
 
-
 #[test]
 fn tst_iterate_with_crossword() {
-
     let map = get_sample_map_abc_abc();
     assert_eq!(map.len(), 16);
 
@@ -1045,7 +967,6 @@ fn tst_iterate_with_crossword() {
     let mut v = Vec::new();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
@@ -1057,7 +978,6 @@ fn tst_iterate_with_crossword() {
     v.clear();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
@@ -1069,7 +989,6 @@ fn tst_iterate_with_crossword() {
     v.clear();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
@@ -1081,7 +1000,6 @@ fn tst_iterate_with_crossword() {
     v.clear();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
@@ -1093,7 +1011,6 @@ fn tst_iterate_with_crossword() {
     v.clear();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
@@ -1105,11 +1022,13 @@ fn tst_iterate_with_crossword() {
     v.clear();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
-    assert_eq!(v, ["aab", "aba", "abb", "abc", "aca", "bac", "caa", "cbc", "cca"]);
+    assert_eq!(
+        v,
+        ["aab", "aba", "abb", "abc", "aca", "bac", "caa", "cbc", "cca"]
+    );
 
     ////////////////////////////////////////////////////
 
@@ -1117,17 +1036,14 @@ fn tst_iterate_with_crossword() {
     v.clear();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
     assert_eq!(v.is_empty(), true);
 }
-
 
 #[test]
 fn tst_iterate_with_crossword_backward() {
-
     let map = get_sample_map_abc_abc();
     assert_eq!(map.len(), 16);
 
@@ -1135,7 +1051,6 @@ fn tst_iterate_with_crossword_backward() {
     let mut v = Vec::new();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
     }
 
@@ -1149,7 +1064,6 @@ fn tst_iterate_with_crossword_backward() {
     v.clear();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
     }
 
@@ -1163,7 +1077,6 @@ fn tst_iterate_with_crossword_backward() {
     v.clear();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
     }
 
@@ -1177,7 +1090,6 @@ fn tst_iterate_with_crossword_backward() {
     v.clear();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
     }
 
@@ -1191,7 +1103,6 @@ fn tst_iterate_with_crossword_backward() {
     v.clear();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
     }
 
@@ -1205,13 +1116,15 @@ fn tst_iterate_with_crossword_backward() {
     v.clear();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
     }
 
     v.reverse();
 
-    assert_eq!(v, ["aab", "aba", "abb", "abc", "aca", "bac", "caa", "cbc", "cca"]);
+    assert_eq!(
+        v,
+        ["aab", "aba", "abb", "abc", "aca", "bac", "caa", "cbc", "cca"]
+    );
 
     ////////////////////////////////////////////////////
 
@@ -1219,7 +1132,6 @@ fn tst_iterate_with_crossword_backward() {
     v.clear();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
     }
 
@@ -1228,10 +1140,8 @@ fn tst_iterate_with_crossword_backward() {
     assert_eq!(v.is_empty(), true);
 }
 
-
 #[test]
 fn tst_iterate_with_crossword_from_both_end() {
-
     let map = get_sample_map_abc_abc();
     assert_eq!(map.len(), 16);
 
@@ -1239,7 +1149,6 @@ fn tst_iterate_with_crossword_from_both_end() {
     let mut v = Vec::new();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
     }
 
@@ -1254,7 +1163,6 @@ fn tst_iterate_with_crossword_from_both_end() {
     v.clear();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
     }
 
@@ -1277,13 +1185,9 @@ fn tst_iterate_with_crossword_from_both_end() {
     let mut vj = Vec::new();
 
     for i in 0..count {
-
-        if i%2 == 0 {
-
+        if i % 2 == 0 {
             vi.push(*it.next().unwrap());
-
         } else {
-
             vj.push(*it.next_back().unwrap());
         }
     }
@@ -1297,10 +1201,8 @@ fn tst_iterate_with_crossword_from_both_end() {
     assert_eq!(vj, ["caa"]);
 }
 
-
 #[test]
 fn tst_insert_and_remove_some_key_value() {
-
     let mut empty_map: Tst<bool> = Tst::new();
     assert_eq!(empty_map.len(), 0);
 
@@ -1339,14 +1241,11 @@ fn tst_insert_and_remove_some_key_value() {
     assert_eq!(map.len(), 0);
 }
 
-
 #[test]
 fn tst_insert_and_remove_more_key_value() {
-
     let mut map = get_sample_map_abc_abc();
 
     for k in RANDOM_VEC_123_BIS.iter() {
-
         let len = map.len();
 
         {
@@ -1357,17 +1256,17 @@ fn tst_insert_and_remove_more_key_value() {
 
         let value = map.remove(k);
         assert_eq!(value, Some(*k));
-        assert_eq!(map.len(), len-1);
+        assert_eq!(map.len(), len - 1);
 
         {
             let value = map.get(k);
             assert_eq!(value, None);
-            assert_eq!(map.len(), len-1);
+            assert_eq!(map.len(), len - 1);
         }
 
         let value = map.remove(k);
         assert_eq!(value, None);
-        assert_eq!(map.len(), len-1);
+        assert_eq!(map.len(), len - 1);
     }
 
     assert_eq!(map.len(), 0);
@@ -1397,10 +1296,8 @@ fn tst_insert_and_remove_more_key_value() {
     assert_eq!(map.len(), 0);
 }
 
-
 #[test]
 fn tst_stats_on_insert_and_remove() {
-
     let empty_map: Tst<bool> = Tst::new();
 
     let s1 = empty_map.stat();
@@ -1437,21 +1334,77 @@ fn tst_stats_on_insert_and_remove() {
 
     //total size should be around 976 bytes on x64
     assert_eq!(s2.bytes.total >= 488, true);
-    assert_eq!(s2.bytes.total <= 16+20*48, true);
+    assert_eq!(s2.bytes.total <= 16 + 20 * 48, true);
 
     assert_eq!(s1.bytes.node < s2.bytes.node, true);
     assert_eq!(s1.bytes.total < s2.bytes.total, true);
 
     use ternary_tree::DistStat;
 
-    assert_eq!(s2.dist[0], DistStat { matches: 0, sides: 3, depth: 0 });
-    assert_eq!(s2.dist[1], DistStat { matches: 3, sides: 7, depth: 1 });
-    assert_eq!(s2.dist[2], DistStat { matches: 4, sides: 4, depth: 2 });
-    assert_eq!(s2.dist[3], DistStat { matches: 9, sides: 1, depth: 5 });
-    assert_eq!(s2.dist[4], DistStat { matches: 0, sides: 1, depth: 3 });
-    assert_eq!(s2.dist[5], DistStat { matches: 0, sides: 0, depth: 3 });
-    assert_eq!(s2.dist[6], DistStat { matches: 0, sides: 0, depth: 1 });
-    assert_eq!(s2.dist[7], DistStat { matches: 0, sides: 0, depth: 1 });
+    assert_eq!(
+        s2.dist[0],
+        DistStat {
+            matches: 0,
+            sides: 3,
+            depth: 0
+        }
+    );
+    assert_eq!(
+        s2.dist[1],
+        DistStat {
+            matches: 3,
+            sides: 7,
+            depth: 1
+        }
+    );
+    assert_eq!(
+        s2.dist[2],
+        DistStat {
+            matches: 4,
+            sides: 4,
+            depth: 2
+        }
+    );
+    assert_eq!(
+        s2.dist[3],
+        DistStat {
+            matches: 9,
+            sides: 1,
+            depth: 5
+        }
+    );
+    assert_eq!(
+        s2.dist[4],
+        DistStat {
+            matches: 0,
+            sides: 1,
+            depth: 3
+        }
+    );
+    assert_eq!(
+        s2.dist[5],
+        DistStat {
+            matches: 0,
+            sides: 0,
+            depth: 3
+        }
+    );
+    assert_eq!(
+        s2.dist[6],
+        DistStat {
+            matches: 0,
+            sides: 0,
+            depth: 1
+        }
+    );
+    assert_eq!(
+        s2.dist[7],
+        DistStat {
+            matches: 0,
+            sides: 0,
+            depth: 1
+        }
+    );
     assert_eq!(s2.dist.len(), 8);
 
     ////////////////////////////////////////////////////
@@ -1463,7 +1416,6 @@ fn tst_stats_on_insert_and_remove() {
     assert_eq!(s.count.values, 0);
 
     for k in RANDOM_VEC_123.iter() {
-
         let s1 = map.stat();
         map.insert(k, *k);
         let s2 = map.stat();
@@ -1474,7 +1426,6 @@ fn tst_stats_on_insert_and_remove() {
     }
 
     for k in RANDOM_VEC_123_BIS.iter() {
-
         let s1 = map.stat();
         map.remove(k);
         let s2 = map.stat();
@@ -1489,10 +1440,8 @@ fn tst_stats_on_insert_and_remove() {
     assert_eq!(s.count.values, 0);
 }
 
-
 #[test]
 fn tst_clear_some_map() {
-
     let mut empty_map: Tst<bool> = Tst::new();
 
     empty_map.clear();
@@ -1522,10 +1471,8 @@ fn tst_clear_some_map() {
     assert_eq!(s.count.values, map.len());
 }
 
-
 #[test]
 fn tst_iterate_and_read_current_key() {
-
     let map = get_sample_map_abc_abc();
     assert_eq!(map.len(), 16);
 
@@ -1534,7 +1481,6 @@ fn tst_iterate_and_read_current_key() {
     let mut w = Vec::new();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
         w.push(it.current_key());
     }
@@ -1543,10 +1489,8 @@ fn tst_iterate_and_read_current_key() {
     assert_eq!(w, SORTED_VEC_123);
 }
 
-
 #[test]
 fn tst_iterate_and_read_current_key_back() {
-
     let map = get_sample_map_abc_abc();
     assert_eq!(map.len(), 16);
 
@@ -1555,7 +1499,6 @@ fn tst_iterate_and_read_current_key_back() {
     let mut w = Vec::new();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
         w.push(it.current_key_back());
     }
@@ -1567,10 +1510,8 @@ fn tst_iterate_and_read_current_key_back() {
     assert_eq!(w, SORTED_VEC_123);
 }
 
-
 #[test]
 fn tst_current_key_iterators() {
-
     let map = get_sample_map_abc_abc();
     assert_eq!(map.len(), 16);
 
@@ -1579,7 +1520,6 @@ fn tst_current_key_iterators() {
     let mut w = Vec::new();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
         w.push(it.current_key());
     }
@@ -1593,7 +1533,6 @@ fn tst_current_key_iterators() {
     w.clear();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
         w.push(it.current_key_back());
     }
@@ -1607,7 +1546,6 @@ fn tst_current_key_iterators() {
     w.clear();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
         w.push(it.current_key());
     }
@@ -1621,7 +1559,6 @@ fn tst_current_key_iterators() {
     w.clear();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
         w.push(it.current_key_back());
     }
@@ -1635,7 +1572,6 @@ fn tst_current_key_iterators() {
     w.clear();
 
     while let Some(value) = it.next() {
-
         v.push(*value);
         w.push(it.current_key());
     }
@@ -1649,7 +1585,6 @@ fn tst_current_key_iterators() {
     w.clear();
 
     while let Some(value) = it.next_back() {
-
         v.push(*value);
         w.push(it.current_key_back());
     }
@@ -1657,19 +1592,15 @@ fn tst_current_key_iterators() {
     assert_eq!(v, w);
 }
 
-
 #[test]
 fn tst_update_some_values() {
-
     let mut map = get_sample_map_abc_count();
     assert_eq!(map.len(), 16);
 
     for k in SORTED_VEC_123.iter() {
-
-        let value =  map.get_mut(k);
+        let value = map.get_mut(k);
 
         if let Some(c) = value {
-
             assert_eq!(*c > 0, true);
             *c = 0;
         }
@@ -1678,7 +1609,7 @@ fn tst_update_some_values() {
     let mut v = Vec::new();
 
     map.visit_values(|c| v.push(c.clone()));
-    assert_eq!(v, [0 ; 16]);
+    assert_eq!(v, [0; 16]);
 
     ////////////////////////////////////////////////////
 
@@ -1687,7 +1618,7 @@ fn tst_update_some_values() {
     v.clear();
 
     map.visit_values(|c| v.push(c.clone()));
-    assert_eq!(v, [1 ; 16]);
+    assert_eq!(v, [1; 16]);
 
     ////////////////////////////////////////////////////
 
@@ -1717,10 +1648,8 @@ fn tst_update_some_values() {
     assert_eq!(v, [1, 2, 2, 3, 4, 3, 3, 2, 4, 1, 1, 1, 1, 1, 3, 1]);
 }
 
-
 #[test]
 fn tst_create_with_macro() {
-
     use ternary_tree::tst;
 
     let map = tst!["aba" => "aba", "ab" => "ab", "bc" => "bc", "ac" => "ac",
@@ -1743,18 +1672,74 @@ fn tst_create_with_macro() {
 
     //total size should be around 976 bytes on x64
     assert_eq!(stat.bytes.total >= 488, true);
-    assert_eq!(stat.bytes.total <= 16+20*48, true);
+    assert_eq!(stat.bytes.total <= 16 + 20 * 48, true);
 
     use ternary_tree::DistStat;
 
-    assert_eq!(stat.dist[0], DistStat { matches: 0, sides: 3, depth: 0 });
-    assert_eq!(stat.dist[1], DistStat { matches: 3, sides: 7, depth: 1 });
-    assert_eq!(stat.dist[2], DistStat { matches: 4, sides: 4, depth: 2 });
-    assert_eq!(stat.dist[3], DistStat { matches: 9, sides: 1, depth: 5 });
-    assert_eq!(stat.dist[4], DistStat { matches: 0, sides: 1, depth: 3 });
-    assert_eq!(stat.dist[5], DistStat { matches: 0, sides: 0, depth: 3 });
-    assert_eq!(stat.dist[6], DistStat { matches: 0, sides: 0, depth: 1 });
-    assert_eq!(stat.dist[7], DistStat { matches: 0, sides: 0, depth: 1 });
+    assert_eq!(
+        stat.dist[0],
+        DistStat {
+            matches: 0,
+            sides: 3,
+            depth: 0
+        }
+    );
+    assert_eq!(
+        stat.dist[1],
+        DistStat {
+            matches: 3,
+            sides: 7,
+            depth: 1
+        }
+    );
+    assert_eq!(
+        stat.dist[2],
+        DistStat {
+            matches: 4,
+            sides: 4,
+            depth: 2
+        }
+    );
+    assert_eq!(
+        stat.dist[3],
+        DistStat {
+            matches: 9,
+            sides: 1,
+            depth: 5
+        }
+    );
+    assert_eq!(
+        stat.dist[4],
+        DistStat {
+            matches: 0,
+            sides: 1,
+            depth: 3
+        }
+    );
+    assert_eq!(
+        stat.dist[5],
+        DistStat {
+            matches: 0,
+            sides: 0,
+            depth: 3
+        }
+    );
+    assert_eq!(
+        stat.dist[6],
+        DistStat {
+            matches: 0,
+            sides: 0,
+            depth: 1
+        }
+    );
+    assert_eq!(
+        stat.dist[7],
+        DistStat {
+            matches: 0,
+            sides: 0,
+            depth: 1
+        }
+    );
     assert_eq!(stat.dist.len(), 8);
 
     let mut v = Vec::new();
@@ -1764,10 +1749,8 @@ fn tst_create_with_macro() {
     assert_eq!(v, SORTED_VEC_123);
 }
 
-
 #[test]
 fn tst_pretty_print() {
-
     use ternary_tree::tst;
 
     let map = tst!["ab" => "ab", "aa" => "aa", "ac" => "ac"];
