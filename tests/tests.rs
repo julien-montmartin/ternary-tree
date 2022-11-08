@@ -159,6 +159,16 @@ fn get_sample_map_abc_abc_with_unicode() -> Tst<std::string::String> {
 }
 
 #[test]
+fn tst_get_nth() {
+    let map = get_sample_map_abc_abc();
+    for (n, expected) in SORTED_VEC_123.iter().enumerate() {
+        let (key, value) = map.get_nth(n).unwrap();
+        assert_eq!(&key, expected);
+        assert_eq!(value == expected, true);
+    }
+}
+
+#[test]
 fn tst_insert_and_get_more_key_value() {
     let map = get_sample_map_abc_count();
 

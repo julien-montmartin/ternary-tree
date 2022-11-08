@@ -253,6 +253,34 @@ fn get_r<'a, T>(link: &'a Link<T>, label: char, key_tail: &mut Chars) -> Option<
     }
 }
 
+fn get_nth_r<'a, T>(link: &'a Link<T>, mut n: usize, mut path: String) -> Option<(String, &'a T)> {
+    match *link {
+        None => None,
+        Some(ref node) => {
+            let left_count = link_count(&node.left);
+            if n < left_count {
+                return get_nth_r(&node.left, n, path);
+            }
+            n -= left_count;
+            if node.value.is_some() {
+                if n == 0 {
+                    path.push(node.label);
+                    return Some((path, node.value.as_ref().unwrap()));
+                } else {
+                    n -= 1;
+                }
+            }
+            let middle_count = link_count(&node.middle);
+            if n < middle_count {
+                path.push(node.label);
+                return get_nth_r(&node.middle, n, path);
+            }
+            n -= middle_count;
+            get_nth_r(&node.right, n, path)
+        }
+    }
+}
+
 fn get_r_mut<'a, T>(link: &'a mut Link<T>, label: char, key_tail: &mut Chars) -> Option<&'a mut T> {
     match *link {
         None => None,
@@ -967,6 +995,10 @@ impl<T> Tst<T> {
 
             Some(label) => get_r(&self.root, label, &mut key_tail),
         }
+    }
+
+    pub fn get_nth(&self, n: usize) -> Option<(String, &T)> {
+        get_nth_r(&self.root, n, String::new())
     }
 
     /// Returns an mutable reference to the value associated with `key`, or `None`.
