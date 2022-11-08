@@ -1341,11 +1341,11 @@ fn tst_stats_on_insert_and_remove() {
     assert_eq!(s1.count.values, 0);
     assert_eq!(s1.count.values, empty_map.len());
 
-    //node struct size should be around 32 bytes on x64
+    //node struct size should be around 40 bytes on x64
     assert_eq!(s1.bytes.node >= 16, true);
     assert_eq!(s1.bytes.node <= 64, true);
 
-    //main tree struct size should be around 16 bytes on x64
+    //main tree struct size should be around 8 bytes on x64
     assert_eq!(s1.bytes.total >= 8, true);
     assert_eq!(s1.bytes.total <= 32, true);
 
@@ -1360,13 +1360,13 @@ fn tst_stats_on_insert_and_remove() {
     assert_eq!(s2.count.values, 16);
     assert_eq!(s2.count.values, map.len());
 
-    //node struct size should be around 48 bytes on x64
+    //node struct size should be around 56 bytes on x64
     assert_eq!(s2.bytes.node >= 24, true);
     assert_eq!(s2.bytes.node <= 96, true);
 
-    //total size should be around 976 bytes on x64
+    //total size should be around 1128 bytes on x64
     assert_eq!(s2.bytes.total >= 488, true);
-    assert_eq!(s2.bytes.total <= 16 + 20 * 48, true);
+    assert_eq!(s2.bytes.total <= 16 + 20 * 56, true);
 
     assert_eq!(s1.bytes.node < s2.bytes.node, true);
     assert_eq!(s1.bytes.total < s2.bytes.total, true);
@@ -1698,13 +1698,11 @@ fn tst_create_with_macro() {
     assert_eq!(stat.count.values, 16);
     assert_eq!(stat.count.values, map.len());
 
-    //node struct size should be around 48 bytes on x64
-    assert_eq!(stat.bytes.node >= 24, true);
-    assert_eq!(stat.bytes.node <= 96, true);
+    //node struct size should be around 56 bytes on x64
+    assert_eq!(stat.bytes.node, 56);
 
-    //total size should be around 976 bytes on x64
-    assert_eq!(stat.bytes.total >= 488, true);
-    assert_eq!(stat.bytes.total <= 16 + 20 * 48, true);
+    //total size should be around 1128 bytes on x64
+    assert_eq!(stat.bytes.total, 8 + 20 * 56);
 
     use ternary_tree::DistStat;
 

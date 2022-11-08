@@ -132,7 +132,6 @@ use std::str::Chars;
 
 pub struct Tst<T> {
     root: Link<T>,
-    count: usize,
 }
 
 type Link<T> = Option<Box<Node<T>>>;
@@ -143,6 +142,23 @@ struct Node<T> {
     left: Link<T>,
     middle: Link<T>,
     right: Link<T>,
+    count: usize,
+}
+
+fn link_count<T>(link: &Link<T>) -> usize {
+    link.as_ref().map_or(0, |v| v.count)
+}
+
+impl<T> Node<T> {
+    fn verify_count(&self) {
+        assert_eq!(
+            self.count,
+            link_count(&self.left)
+                + link_count(&self.middle)
+                + link_count(&self.right)
+                + (if self.value.is_some() { 1 } else { 0 })
+        );
+    }
 }
 
 impl<T> Default for Node<T> {
@@ -153,6 +169,7 @@ impl<T> Default for Node<T> {
             left: None,
             middle: None,
             right: None,
+            count: 0,
         }
     }
 }
@@ -169,20 +186,27 @@ impl<T> fmt::Debug for Node<T> {
 }
 
 fn insert_r<T>(link: &mut Link<T>, label: char, mut key_tail: Chars, value: T) -> Option<T> {
-    let choose_branch_and_do_insert = |node: &mut Box<Node<T>>| match label.cmp(&node.label) {
-        Less => insert_r(&mut node.left, label, key_tail, value),
+    let choose_branch_and_do_insert = |node: &mut Box<Node<T>>| {
+        let old_value = match label.cmp(&node.label) {
+            Less => insert_r(&mut node.left, label, key_tail, value),
 
-        Greater => insert_r(&mut node.right, label, key_tail, value),
+            Greater => insert_r(&mut node.right, label, key_tail, value),
 
-        Equal => {
-            let new_label = key_tail.next();
+            Equal => {
+                let new_label = key_tail.next();
 
-            match new_label {
-                None => replace(&mut node.value, Some(value)),
+                match new_label {
+                    None => replace(&mut node.value, Some(value)),
 
-                Some(label) => insert_r(&mut node.middle, label, key_tail, value),
+                    Some(label) => insert_r(&mut node.middle, label, key_tail, value),
+                }
             }
+        };
+        if old_value.is_none() {
+            node.count += 1;
         }
+        node.verify_count();
+        old_value
     };
 
     match link {
@@ -193,7 +217,7 @@ fn insert_r<T>(link: &mut Link<T>, label: char, mut key_tail: Chars, value: T) -
             });
 
             let old_value = choose_branch_and_do_insert(&mut node);
-
+            node.verify_count();
             *link = Some(node);
 
             old_value
@@ -259,9 +283,15 @@ fn remove_leftmost<T>(link: &mut Link<T>) -> Node<T> {
     assert!(link.is_some());
     let node = link.as_mut().unwrap();
     if node.left.is_some() {
-        remove_leftmost(&mut node.left)
+        let removed = remove_leftmost(&mut node.left);
+        node.count -= removed.count;
+        node.verify_count();
+        removed
     } else {
+        node.verify_count();
         let greater = replace(&mut node.right, None);
+        node.count -= link_count(&greater);
+        node.verify_count();
         *replace(link, greater).unwrap()
     }
 }
@@ -273,7 +303,7 @@ fn remove_r<T>(link: &mut Link<T>, label: char, key_tail: &mut Chars) -> Option<
         Some(ref mut node) => {
             assert!(node.middle.is_some() || node.value.is_some());
 
-            match label.cmp(&node.label) {
+            let removed = match label.cmp(&node.label) {
                 Less => remove_r(&mut node.left, label, key_tail),
 
                 Equal => {
@@ -287,27 +317,40 @@ fn remove_r<T>(link: &mut Link<T>, label: char, key_tail: &mut Chars) -> Option<
                     if node.value.is_none() && node.middle.is_none() {
                         assert!(old_value.is_some());
                         if node.left.is_none() {
-                            *link = replace(&mut node.right, None)
+                            *link = replace(&mut node.right, None);
                         } else if node.right.is_none() {
-                            *link = replace(&mut node.left, None)
+                            *link = replace(&mut node.left, None);
                         } else {
                             let Node {
                                 value,
                                 label,
                                 middle,
+                                count,
                                 ..
                             } = remove_leftmost(&mut node.right);
+                            assert_eq!(
+                                count,
+                                link_count(&middle) + (if value.is_some() { 1 } else { 0 })
+                            );
                             node.label = label;
                             node.value = value;
                             node.middle = middle;
+                            node.count = count + link_count(&node.left) + link_count(&node.right);
+                            node.verify_count();
                         }
+                        return old_value;
                     }
 
                     old_value
                 }
 
                 Greater => remove_r(&mut node.right, label, key_tail),
+            };
+            if removed.is_some() {
+                node.count -= 1;
             }
+            node.verify_count();
+            removed
         }
     }
 }
@@ -864,10 +907,7 @@ impl<T> Tst<T> {
     /// And the exact value type is properly guessed.
 
     pub fn new() -> Self {
-        Tst {
-            root: None,
-            count: 0,
-        }
+        Tst { root: None }
     }
 
     /// Inserts `key` and `value` pair in the tree, returning any value previously associated with `key`.
@@ -905,15 +945,7 @@ impl<T> Tst<T> {
         match key_tail.next() {
             None => Some(value),
 
-            Some(label) => {
-                let old_value = insert_r(&mut self.root, label, key_tail, value);
-
-                if old_value.is_none() {
-                    self.count += 1;
-                }
-
-                old_value
-            }
+            Some(label) => insert_r(&mut self.root, label, key_tail, value),
         }
     }
 
@@ -978,17 +1010,11 @@ impl<T> Tst<T> {
     pub fn remove(&mut self, key: &str) -> Option<T> {
         let mut key_tail = key.chars();
 
-        let old_value = match key_tail.next() {
+        match key_tail.next() {
             None => None,
 
             Some(label) => remove_r(&mut self.root, label, &mut key_tail),
-        };
-
-        if old_value.is_some() {
-            self.count -= 1;
         }
-
-        old_value
     }
 
     /// Returns the number of values stored in the tree.
@@ -1003,7 +1029,7 @@ impl<T> Tst<T> {
     /// ```
 
     pub fn len(&self) -> usize {
-        self.count
+        link_count(&self.root)
     }
 
     /// Walks the tree, gathers various metrics about nodes, keys and values, and returns a [`Stats`](
@@ -1049,7 +1075,6 @@ impl<T> Tst<T> {
 
     pub fn clear(&mut self) {
         self.root = None;
-        self.count = 0;
     }
 
     /// Recursively walks the tree and calls `callback` closure on each immutable value. Values are found in
