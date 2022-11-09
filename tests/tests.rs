@@ -68,17 +68,8 @@ fn tst_get_value_back_on_empty_key() {
 }
 
 #[test]
-fn tst_remove_leftmost() {
+fn tst_remove_root() {
     let mut map = Tst::new();
-    /*
-       b              c
-      / \            /|\
-     a   e     ->   a ć e
-        /|\            /|\
-       c ę f          d ę f
-       |\
-       ć d
-    */
     map.insert("b", "B");
     map.insert("a", "A");
     map.insert("eę", "EĘ");
@@ -165,6 +156,17 @@ fn tst_get_nth() {
         let (key, value) = map.get_nth(n).unwrap();
         assert_eq!(&key, expected);
         assert_eq!(value == expected, true);
+    }
+}
+
+#[test]
+fn tst_random() {
+    let mut map = get_sample_map_abc_count();
+    for i in 0..1000 {
+        map.insert(RANDOM_VEC_123[i % RANDOM_VEC_123.len()], i);
+        map.verify();
+        map.remove(RANDOM_VEC_123_BIS[(i * i) % RANDOM_VEC_123_BIS.len()]);
+        map.verify();
     }
 }
 

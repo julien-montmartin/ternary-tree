@@ -159,6 +159,10 @@ impl<T> Node<T> {
                 + (if self.value.is_some() { 1 } else { 0 })
         );
     }
+    fn verify_balance(&self) {
+        assert!(!needs_rebuild(self.count, link_count(&self.left)));
+        assert!(!needs_rebuild(self.count, link_count(&self.right)));
+    }
 }
 
 impl<T> Default for Node<T> {
@@ -185,46 +189,121 @@ impl<T> fmt::Debug for Node<T> {
     }
 }
 
-fn insert_r<T>(link: &mut Link<T>, label: char, mut key_tail: Chars, value: T) -> Option<T> {
-    let choose_branch_and_do_insert = |node: &mut Box<Node<T>>| {
-        let old_value = match label.cmp(&node.label) {
-            Less => insert_r(&mut node.left, label, key_tail, value),
-
-            Greater => insert_r(&mut node.right, label, key_tail, value),
-
-            Equal => {
-                let new_label = key_tail.next();
-
-                match new_label {
-                    None => replace(&mut node.value, Some(value)),
-
-                    Some(label) => insert_r(&mut node.middle, label, key_tail, value),
-                }
-            }
-        };
-        if old_value.is_none() {
-            node.count += 1;
-        }
-        node.verify_count();
-        old_value
-    };
-
+fn verify_r<T>(link: &Link<T>) {
     match link {
-        None => {
-            let mut node = Box::new(Node::<T> {
-                label,
-                ..Default::default()
-            });
-
-            let old_value = choose_branch_and_do_insert(&mut node);
+        None => {}
+        Some(ref node) => {
             node.verify_count();
-            *link = Some(node);
-
-            old_value
+            node.verify_balance();
+            verify_r(&node.left);
+            verify_r(&node.right);
+            verify_r(&node.middle);
         }
-
-        Some(ref mut node) => choose_branch_and_do_insert(node),
     }
+}
+
+fn flatten_r<T>(link: &mut Link<T>, nodes_in_order: &mut Vec<Link<T>>) {
+    match link {
+        None => {}
+        Some(_) => {
+            let mut me = replace(link, None);
+            let ref mut node = me.as_mut().unwrap();
+            let mut left = replace(&mut node.left, None);
+            let mut right = replace(&mut node.right, None);
+            node.count -= link_count(&left);
+            node.count -= link_count(&right);
+            flatten_r(&mut left, nodes_in_order);
+            assert_eq!(
+                0 < node.count,
+                node.value.is_some() || node.middle.is_some()
+            );
+            if 0 < node.count {
+                //pruning
+                nodes_in_order.push(me);
+            }
+            flatten_r(&mut right, nodes_in_order);
+        }
+    }
+}
+fn build<T>(nodes_in_order: &mut [Link<T>], start: usize, prefix_sums: &[usize]) -> Link<T> {
+    assert_eq!(nodes_in_order.len(), prefix_sums.len());
+    if nodes_in_order.is_empty() {
+        return None;
+    }
+    let end = prefix_sums.last().unwrap_or(&0);
+    let center = (start + end) >> 1;
+    // if the sizes are [1,1,1], then end==3, center = 1 (well, 1.5),
+    // the prefix_sums: [1,2,3], and we want to find the prefix_sums[i-1]<=center<prefix_sums[i]
+    let i = prefix_sums.partition_point(|sum| sum <= &center);
+    assert!(center < prefix_sums[i]);
+    let (left_prefix_sums, non_left_prefix_sums) = prefix_sums.split_at(i);
+    let (_, right_prefix_sums) = non_left_prefix_sums.split_at(1);
+    let (left_nodes_in_order, non_left_nodes_in_order) = nodes_in_order.split_at_mut(i);
+    let (middle_nodes, right_nodes_in_order) = non_left_nodes_in_order.split_at_mut(1);
+    let mut middle_node_option = replace(&mut middle_nodes[0], None);
+    let ref mut middle_node = middle_node_option.as_mut().unwrap();
+    middle_node.left = build(left_nodes_in_order, start, left_prefix_sums);
+    middle_node.right = build(right_nodes_in_order, prefix_sums[i], right_prefix_sums);
+    middle_node.count += link_count(&middle_node.left) + link_count(&middle_node.right);
+    return middle_node_option;
+}
+fn rebuild<T>(link: &mut Link<T>) {
+    let mut nodes_in_order = vec![];
+    flatten_r(link, &mut nodes_in_order);
+    let mut prefix_sum_of_sizes = vec![];
+    for ref node in nodes_in_order.iter() {
+        prefix_sum_of_sizes.push(link_count(node) + prefix_sum_of_sizes.last().unwrap_or(&0));
+    }
+    *link = build(&mut nodes_in_order, 0, &prefix_sum_of_sizes);
+}
+fn needs_rebuild(total: usize, child: usize) -> bool {
+    // needs_rebuild(0,0) must be true
+    return total * 3 <= child * 4;
+}
+fn insert_r<T>(
+    link: &mut Link<T>,
+    label: char,
+    mut key_tail: Chars,
+    value: T,
+    rebuild_allowed: bool,
+) -> Option<T> {
+    if link.is_none() {
+        *link = Some(Box::new(Node::<T> {
+            label,
+            ..Default::default()
+        }));
+    }
+    let ref mut node = link.as_mut().unwrap();
+    let rebuild_on_new;
+    let old_value = if label == node.label {
+        rebuild_on_new = false;
+        match key_tail.next() {
+            None => replace(&mut node.value, Some(value)),
+            Some(label) => insert_r(&mut node.middle, label, key_tail, value, true),
+        }
+    } else {
+        let child = if label < node.label {
+            &mut node.left
+        } else {
+            &mut node.right
+        };
+        rebuild_on_new = rebuild_allowed && needs_rebuild(node.count + 1, link_count(child) + 1);
+        insert_r(
+            child,
+            label,
+            key_tail,
+            value,
+            rebuild_allowed && !rebuild_on_new,
+        )
+    };
+    if old_value.is_none() {
+        node.count += 1;
+        node.verify_count();
+        if rebuild_on_new {
+            rebuild(link);
+        }
+    }
+    old_value
 }
 
 fn get_r<'a, T>(link: &'a Link<T>, label: char, key_tail: &mut Chars) -> Option<&'a T> {
@@ -307,77 +386,67 @@ fn get_r_mut<'a, T>(link: &'a mut Link<T>, label: char, key_tail: &mut Chars) ->
     }
 }
 
-fn remove_leftmost<T>(link: &mut Link<T>) -> Node<T> {
-    assert!(link.is_some());
-    let node = link.as_mut().unwrap();
-    if node.left.is_some() {
-        let removed = remove_leftmost(&mut node.left);
-        node.count -= removed.count;
-        node.verify_count();
-        removed
-    } else {
-        node.verify_count();
-        let greater = replace(&mut node.right, None);
-        node.count -= link_count(&greater);
-        node.verify_count();
-        *replace(link, greater).unwrap()
-    }
-}
-
-fn remove_r<T>(link: &mut Link<T>, label: char, key_tail: &mut Chars) -> Option<T> {
+fn remove_r<T>(
+    link: &mut Link<T>,
+    label: char,
+    key_tail: &mut Chars,
+    rebuild_allowed: bool,
+) -> Option<T> {
     match *link {
         None => None,
-
         Some(ref mut node) => {
-            assert!(node.middle.is_some() || node.value.is_some());
-
+            assert!(0 < node.count);
+            let rebuild_on_removal;
             let removed = match label.cmp(&node.label) {
-                Less => remove_r(&mut node.left, label, key_tail),
-
-                Equal => {
-                    let new_label = key_tail.next();
-
-                    let old_value = match new_label {
-                        None => replace(&mut node.value, None),
-                        Some(label) => remove_r(&mut node.middle, label, key_tail),
-                    };
-                    // Node is only needed for as long as it is part of some key
-                    if node.value.is_none() && node.middle.is_none() {
-                        assert!(old_value.is_some());
-                        if node.left.is_none() {
-                            *link = replace(&mut node.right, None);
-                        } else if node.right.is_none() {
-                            *link = replace(&mut node.left, None);
-                        } else {
-                            let Node {
-                                value,
-                                label,
-                                middle,
-                                count,
-                                ..
-                            } = remove_leftmost(&mut node.right);
-                            assert_eq!(
-                                count,
-                                link_count(&middle) + (if value.is_some() { 1 } else { 0 })
-                            );
-                            node.label = label;
-                            node.value = value;
-                            node.middle = middle;
-                            node.count = count + link_count(&node.left) + link_count(&node.right);
-                            node.verify_count();
-                        }
-                        return old_value;
-                    }
-
-                    old_value
+                Less => {
+                    rebuild_on_removal =
+                        rebuild_allowed && needs_rebuild(node.count - 1, link_count(&node.right));
+                    remove_r(
+                        &mut node.left,
+                        label,
+                        key_tail,
+                        rebuild_allowed && !rebuild_on_removal,
+                    )
                 }
-
-                Greater => remove_r(&mut node.right, label, key_tail),
+                Greater => {
+                    rebuild_on_removal =
+                        rebuild_allowed && needs_rebuild(node.count - 1, link_count(&node.left));
+                    remove_r(
+                        &mut node.right,
+                        label,
+                        key_tail,
+                        rebuild_allowed && !rebuild_on_removal,
+                    )
+                }
+                Equal => {
+                    rebuild_on_removal = rebuild_allowed
+                        && needs_rebuild(
+                            node.count - 1,
+                            std::cmp::max(link_count(&node.right), link_count(&node.left)),
+                        );
+                    match key_tail.next() {
+                        None => replace(&mut node.value, None),
+                        Some(label) => remove_r(&mut node.middle, label, key_tail, true),
+                    }
+                    // Node is only needed for as long as it is part of some key:
+                    //    node.value.is_none() && node.middle.is_none()
+                    // We could handle the easy cases, where left or right is None, by lifting the other child.
+                    // We might be tempted to handle the case where both are Some, by replacing us with leftmost ancestor of right, but
+                    // that could actually destroy the balance along the path to it.
+                    // However, we do not actually need to do anything at all here!
+                    // All the heavy lifting is done by rebuild() when needs_rebuild() says it is necessary.
+                    // If left & right are balanced, then our node is still helpful in providing a comparison which reduces range by 25%.
+                    // If any of them is missing, and middle&value are empty, then needs_rebuild(0+|kid|,|kid|) will return true.
+                    // If both kids are missing already then needs_rebuild(0,0) should return true as well.
+                }
             };
             if removed.is_some() {
                 node.count -= 1;
+                node.verify_count();
+                if rebuild_on_removal {
+                    rebuild(link)
+                }
             }
-            node.verify_count();
             removed
         }
     }
@@ -973,7 +1042,7 @@ impl<T> Tst<T> {
         match key_tail.next() {
             None => Some(value),
 
-            Some(label) => insert_r(&mut self.root, label, key_tail, value),
+            Some(label) => insert_r(&mut self.root, label, key_tail, value, true),
         }
     }
 
@@ -1045,7 +1114,7 @@ impl<T> Tst<T> {
         match key_tail.next() {
             None => None,
 
-            Some(label) => remove_r(&mut self.root, label, &mut key_tail),
+            Some(label) => remove_r(&mut self.root, label, &mut key_tail, true),
         }
     }
 
@@ -1503,6 +1572,10 @@ impl<T> Tst<T> {
         joker: char,
     ) -> TstCrosswordIterator<'a, 'b, T> {
         TstCrosswordIterator::<T>::new(&self, pattern, joker)
+    }
+
+    pub fn verify(&self) {
+        verify_r(&self.root);
     }
 }
 
